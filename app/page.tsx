@@ -17,11 +17,18 @@ const PAGE_SIZE = 1;
 export default function Home() {
   const [words, setWords] = useState<Word[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(() => Math.floor(Math.random() * 7988) + 1);
+  const [page, setPage] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [filter, setFilter] = useState<'all' | 'memorized' | 'unmemorized'>('all');
   const [loading, setLoading] = useState(false);
+
+  // 마운트 시 total을 받아 랜덤 시작 페이지 설정
+  useEffect(() => {
+    fetch('/api/words?limit=1')
+      .then(r => r.json())
+      .then(data => setPage(Math.floor(Math.random() * data.total) + 1));
+  }, []);
 
   const fetchWords = useCallback(async (p: number, q: string, f: string) => {
     setLoading(true);
@@ -36,7 +43,9 @@ export default function Home() {
     setLoading(false);
   }, []);
 
+  // page가 설정된 이후에만 fetch
   useEffect(() => {
+    if (page === null) return;
     fetchWords(page, search, filter);
   }, [page, search, filter, fetchWords]);
 
@@ -111,7 +120,7 @@ export default function Home() {
         </p>
 
         {/* 카드 */}
-        {loading ? (
+        {loading || page === null ? (
           <div className="flex justify-center items-center h-56">
             <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
           </div>
@@ -126,14 +135,14 @@ export default function Home() {
         {/* 이전 / 다음 */}
         <div className="flex gap-3 mt-6">
           <button
-            onClick={() => setPage(p => Math.max(1, p - 1))}
+            onClick={() => setPage(p => Math.max(1, (p ?? 1) - 1))}
             disabled={page === 1 || loading}
             className="flex-1 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium text-sm disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
             ← 이전
           </button>
           <button
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            onClick={() => setPage(p => Math.min(totalPages, (p ?? 1) + 1))}
             disabled={page === totalPages || loading}
             className="flex-1 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm disabled:opacity-40 transition-colors"
           >
