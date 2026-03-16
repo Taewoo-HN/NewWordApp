@@ -17,7 +17,7 @@ const PAGE_SIZE = 1;
 export default function Home() {
   const [words, setWords] = useState<Word[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => Math.floor(Math.random() * 7988) + 1);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [filter, setFilter] = useState<'all' | 'memorized' | 'unmemorized'>('all');
